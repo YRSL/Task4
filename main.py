@@ -27,6 +27,11 @@ def main():
     DataBase.create_index('index_room_id', 'rooms', 'id')
     DataBase.create_index('index_students_room', 'students', 'room_id')
 
+    DataBase.insert_rooms(data_from_rooms_file)
+    DataBase.insert_students(data_from_students_file)
+
+    DataBase.save_changes()
+
 
 
 

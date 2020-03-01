@@ -21,6 +21,22 @@ class DataBase:
     def create_index(self, index_name, table_name, column_name):
         self.cursor.execute("CREATE INDEX {} ON {} ({})".format(index_name, table_name, column_name))
 
+    def insert_rooms(self, rooms):
+        for room in rooms:
+            self.cursor.execute("INSERT INTO rooms (id, name) VALUES ({},{})".format(room['id'], room['name']))
+
+    def insert_students(self, students):
+        for student in students:
+            self.cursor.execute("INSERT INTO students (id ,birthday, name, room_id, sex) VALUES ({},{},{},{})".format(
+                student['id'],
+                student['birthday'],
+                student['name'],
+                student['room'],
+                student['sex']))
+
+    def save_changes(self):
+        self.connect.commit()
+
 
 sql_create_databases = [
     """CREATE SCHEMA IF NOT EXISTS task4_new_db DEFAULT CHARACTER SET utf8;""",
@@ -42,9 +58,3 @@ sql_create_tables = [
             ON DELETE CASCADE
         );"""
     ]
-
-sql_create_indexes = [
-    """CREATE INDEX index_room_id ON rooms(id);""",
-    """CREATE INDEX index_students_room ON students(room_id);"""
-]
-
