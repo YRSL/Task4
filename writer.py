@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
+from xml.dom.minidom import parseString
 import json
+import dicttoxml
 
 
 class Writer(ABC):
@@ -11,17 +13,14 @@ class Writer(ABC):
 
 class JsonWriter(Writer):
 
-    @staticmethod
-    def write(list_objects):
-        data_result = [i.to_dict() for i in list_objects]
-        with open("result.json", 'w', encoding='UTF-8') as file:
-            json.dump(data_result, file, sort_keys=True, indent=3)
+    def write(self, filename, data):
+        with open(filename + ".json", 'w', encoding='UTF-8') as file:
+            json.dump(data, file, indent=2, default=str)
 
 
 class XmlWriter(Writer):
 
-    @staticmethod
-    def write(root):
-
-        with open("result.xml", 'wb') as file:
-            file.write(root)
+    def write(self, filename, data):
+        result = parseString(dicttoxml.dicttoxml(data)).toprettyxml()
+        with open(filename + ".xml", 'w') as file:
+            file.write(str(result))

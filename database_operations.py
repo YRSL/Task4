@@ -1,13 +1,12 @@
-import mysql.connector
+import MySQLdb
 
 
 class DataBase:
-    def __init__(self):
-        self.db = mysql.connector.connect(
-                      host="localhost",
-                      user="root",
-                      password="123"
-        )
+    def __init__(self, db_settings):
+        self.connect = MySQLdb.connect(
+            db_settings["host"],
+            db_settings["user"],
+            db_settings["password"])
         self.cursor = self.connect.cursor()
 
     def create_databases(self):
@@ -15,24 +14,30 @@ class DataBase:
             self.cursor.execute(sql_query)
 
     def create_tables(self):
+        self.cursor.execute("USE task4_new_db")
         for sql_query in sql_create_tables:
             self.cursor.execute(sql_query)
 
     def create_index(self, index_name, table_name, column_name):
+        self.cursor.execute("USE task4_new_db")
         self.cursor.execute("CREATE INDEX {} ON {} ({})".format(index_name, table_name, column_name))
 
     def insert_rooms(self, rooms):
+        self.cursor.execute("USE task4_new_db")
+        sql = "INSERT INTO rooms (id, name) VALUES (%s, %s)"
         for room in rooms:
-            self.cursor.execute("INSERT INTO rooms (id, name) VALUES ({},{})".format(room['id'], room['name']))
+            self.cursor.execute(sql, (room['id'], room['name']))
 
     def insert_students(self, students):
+        self.cursor.execute("USE task4_new_db")
+        sql = "INSERT INTO students (id ,birthday, name, room_id, sex) VALUES (%s, %s, %s, %s, %s)"
         for student in students:
-            self.cursor.execute("INSERT INTO students (id ,birthday, name, room_id, sex) VALUES ({},{},{},{})".format(
-                student['id'],
-                student['birthday'],
-                student['name'],
-                student['room'],
-                student['sex']))
+            self.cursor.execute(sql, (
+                    student['id'],
+                    student['birthday'],
+                    student['name'],
+                    student['room'],
+                    student['sex']))
 
     def save_changes(self):
         self.connect.commit()
@@ -41,6 +46,7 @@ class DataBase:
     #____________________________________________________________________________________--
 
     def rooms_list_and_count_students_inside(self):
+        self.cursor.execute("USE task4_new_db")
         self.cursor.execute(
             """
             SELECT  rooms.id , rooms.name , COUNT(students.id) as students
@@ -53,6 +59,7 @@ class DataBase:
         return result
 
     def top_5_rooms_with_smallest_average_age(self):
+        self.cursor.execute("USE task4_new_db")
         self.cursor.execute(
             """
             SELECT rooms.id , rooms.name , AVG(TIMESTAMPDIFF(YEAR, students.birthday,NOW())) as average_age
@@ -67,6 +74,7 @@ class DataBase:
         return result
 
     def top5_rooms_with_biggest_age_difference(self):
+        self.cursor.execute("USE task4_new_db")
         self.cursor.execute(
             """
             SELECT rooms.id , rooms.name , TIMESTAMPDIFF(YEAR , MAX(students.birthday) , MIN(students.birthday)) as max_diff
@@ -81,6 +89,7 @@ class DataBase:
         return result
 
     def rooms_list_with_different_sex(self):
+        self.cursor.execute("USE task4_new_db")
         self.cursor.execute(
             """
             SELECT DISTINCT rooms.id , rooms.name , COUNT(DISTINCT students.sex) as sex
