@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from writer import JsonWriter, XmlWriter
 from reader import JsonReader
+from database_operations import DataBase
 
 
 def argument_parse():
@@ -19,6 +20,12 @@ def main():
     data_from_rooms_file = JsonReader().read(argument_parse().rooms_file)
 
     data_from_students_file = JsonReader().read(argument_parse().students_file)
+
+    DataBase.create_databases()
+    DataBase.create_tables()
+
+    DataBase.create_index('index_room_id', 'rooms', 'id')
+    DataBase.create_index('index_students_room', 'students', 'room_id')
 
 
 
