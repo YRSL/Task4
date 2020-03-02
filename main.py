@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from reader import JsonReader
-from database_operations import DataBase
+from database import DatabaseCreate, DatabaseEdit, DatabaseOperations
 from file_creator import FileCreator
 import json
 
@@ -31,23 +31,25 @@ def main():
 
     db_settings = read_db_settings(argument_parse().db_settings)
 
-    db = DataBase(db_settings)
+    db_create = DatabaseCreate(db_settings)
 
-    db.create_databases()
-    db.create_tables()
+    db_create.create_databases()
+    db_create.create_tables()
 
-    db.create_index('index_room_id', 'rooms', 'id')
-    db.create_index('index_students_room', 'students', 'room_id')
+    db_create.create_index('index_room_id', 'rooms', 'id')
+    db_create.create_index('index_students_room', 'students', 'room_id')
 
-    db.insert_rooms(data_from_rooms_file)
-    db.insert_students(data_from_students_file)
+    db_edit = DatabaseEdit(db_settings)
 
-    rooms_list_and_count_students_inside = db.rooms_list_and_count_students_inside()
-    top_5_rooms_with_smallest_average_age = db.top_5_rooms_with_smallest_average_age()
-    top5_rooms_with_biggest_age_difference = db.top5_rooms_with_biggest_age_difference()
-    rooms_list_with_different_sex = db.rooms_list_with_different_sex()
+    db_edit.insert_rooms(data_from_rooms_file)
+    db_edit.insert_students(data_from_students_file)
 
-    db.save_changes()
+    db_operations = DatabaseOperations(db_settings)
+
+    rooms_list_and_count_students_inside = db_operations.rooms_list_and_count_students_inside()
+    top_5_rooms_with_smallest_average_age = db_operations.top_5_rooms_with_smallest_average_age()
+    top5_rooms_with_biggest_age_difference = db_operations.top5_rooms_with_biggest_age_difference()
+    rooms_list_with_different_sex = db_operations.rooms_list_with_different_sex()
 
     file_creator = FileCreator(argument_parse().format_file)
     file_creator.create_file("rooms_list_and_count_students_inside", rooms_list_and_count_students_inside)

@@ -1,13 +1,24 @@
 import MySQLdb
 
 
-class DataBase:
+class DatabaseConnection:
     def __init__(self, db_settings):
-        self.connect = MySQLdb.connect(
+        self.db = self.connect(db_settings)
+        self.cursor = self.db.cursor()
+
+    def connect(self, db_settings):
+        db = MySQLdb.connect(
             db_settings["host"],
             db_settings["user"],
             db_settings["password"])
-        self.cursor = self.connect.cursor()
+        return db
+
+    def disconnect(self):
+        self.cursor.close()
+        self.db.close()
+
+
+class DatabaseCreate(DatabaseConnection):
 
     def create_databases(self):
         for sql_query in sql_create_databases:
@@ -21,12 +32,17 @@ class DataBase:
     def create_index(self, index_name, table_name, column_name):
         self.cursor.execute("USE task4_new_db")
         self.cursor.execute("CREATE INDEX {} ON {} ({})".format(index_name, table_name, column_name))
+        self.db.commit()
+
+
+class DatabaseEdit(DatabaseConnection):
 
     def insert_rooms(self, rooms):
         self.cursor.execute("USE task4_new_db")
         sql = "INSERT INTO rooms (id, name) VALUES (%s, %s)"
         for room in rooms:
             self.cursor.execute(sql, (room['id'], room['name']))
+        self.db.commit()
 
     def insert_students(self, students):
         self.cursor.execute("USE task4_new_db")
@@ -38,12 +54,32 @@ class DataBase:
                     student['name'],
                     student['room'],
                     student['sex']))
-
-    def save_changes(self):
-        self.connect.commit()
+        self.db.commit()
 
 
-    #____________________________________________________________________________________--
+sql_create_databases = [
+    """CREATE SCHEMA IF NOT EXISTS task4_new_db DEFAULT CHARACTER SET utf8;""",
+    ]
+
+sql_create_tables = [
+        """CREATE TABLE IF NOT EXISTS task4_new_db.rooms(
+            id INT PRIMARY KEY,
+            name VARCHAR(50) NOT NULL
+            );""",
+
+        """CREATE TABLE IF NOT EXISTS task4_new_db.students (
+            id INT PRIMARY KEY,
+            birthday DATE NOT NULL,
+            name VARCHAR(50) NOT NULL,
+            room_id INT NOT NULL, 
+            sex ENUM("M","F") NOT NULL,
+            FOREIGN KEY (room_id) REFERENCES rooms(id) 
+                ON DELETE CASCADE
+            );"""
+        ]
+
+
+class DatabaseOperations(DatabaseConnection):
 
     def rooms_list_and_count_students_inside(self):
         self.cursor.execute("USE task4_new_db")
@@ -101,26 +137,3 @@ class DataBase:
         )
         result = self.cursor.fetchall()
         return result
-    #____________________________________________________________________________________++
-
-
-sql_create_databases = [
-    """CREATE SCHEMA IF NOT EXISTS task4_new_db DEFAULT CHARACTER SET utf8;""",
-    ]
-
-sql_create_tables = [
-    """CREATE TABLE IF NOT EXISTS task4_new_db.rooms(
-        id INT PRIMARY KEY,
-        name VARCHAR(50) NOT NULL
-        );""",
-
-    """CREATE TABLE IF NOT EXISTS task4_new_db.students (
-        id INT PRIMARY KEY,
-        birthday DATE NOT NULL,
-        name VARCHAR(50) NOT NULL,
-        room_id INT NOT NULL, 
-        sex ENUM("M","F") NOT NULL,
-        FOREIGN KEY (room_id) REFERENCES rooms(id) 
-            ON DELETE CASCADE
-        );"""
-    ]
