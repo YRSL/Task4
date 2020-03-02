@@ -2,20 +2,21 @@ import MySQLdb
 
 
 class DatabaseConnection:
-    def __init__(self, db_settings):
-        self.db = self.connect(db_settings)
-        self.cursor = self.db.cursor()
+    def __init__(self, database_settings):
+        self.database = self.database_connect(database_settings)
+        self.cursor = self.database.cursor()
 
-    def connect(self, db_settings):
-        db = MySQLdb.connect(
-            db_settings["host"],
-            db_settings["user"],
-            db_settings["password"])
-        return db
+    @staticmethod
+    def database_connect(database_settings):
+        database_config = MySQLdb.connect(
+            database_settings["host"],
+            database_settings["user"],
+            database_settings["password"])
+        return database_config
 
     def disconnect(self):
         self.cursor.close()
-        self.db.close()
+        self.database.close()
 
 
 class DatabaseCreate(DatabaseConnection):
@@ -32,7 +33,7 @@ class DatabaseCreate(DatabaseConnection):
     def create_index(self, index_name, table_name, column_name):
         self.cursor.execute("USE task4_new_db")
         self.cursor.execute("CREATE INDEX {} ON {} ({})".format(index_name, table_name, column_name))
-        self.db.commit()
+        self.database.commit()
 
 
 class DatabaseEdit(DatabaseConnection):
@@ -42,7 +43,7 @@ class DatabaseEdit(DatabaseConnection):
         sql = "INSERT INTO rooms (id, name) VALUES (%s, %s)"
         for room in rooms:
             self.cursor.execute(sql, (room['id'], room['name']))
-        self.db.commit()
+        self.database.commit()
 
     def insert_students(self, students):
         self.cursor.execute("USE task4_new_db")
@@ -54,7 +55,7 @@ class DatabaseEdit(DatabaseConnection):
                     student['name'],
                     student['room'],
                     student['sex']))
-        self.db.commit()
+        self.database.commit()
 
 
 sql_create_databases = [
